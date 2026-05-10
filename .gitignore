@@ -1,5 +1,10 @@
 /target
 *.exe
+servers.json
+test_*.txt
+test_*.png
+wiki_out.txt
+RELEASE_NOTES.md
 *.pdb
 *.ilk
 test_wiki_out.txt
