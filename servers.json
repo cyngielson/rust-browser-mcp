@@ -1,0 +1,145 @@
+{
+	"servers": {
+		"aisquare-playwright": {
+			"command": "npx",
+			"args": [
+				"aisquare-playwright-mcp@latest"
+			],
+			"type": "stdio"
+		},
+		"memory-bank": {
+			"command": "node",
+			"args": [
+				"build/index.js"
+			],
+			"cwd": "C:\\mcp-servers\\mcp-memory-server",
+			"type": "stdio"
+		},
+		"mega-filesystem": {
+			"command": "C:\\mcp-servers\\rust-mega-mcp-server\\target\\release\\mega-mcp-server.exe",
+			"cwd": "C:\\mcp-servers\\rust-mega-mcp-server",
+			"env": {
+				"RUST_LOG": "error"
+			},
+			"type": "stdio"
+		},
+		"ultra-brain": {
+			"command": "C:\\mcp-servers\\ultra-brain-rust\\target\\release\\ultra-brain-rust-grouped-v3",
+			"cwd": "C:\\mcp-servers\\ultra-brain-rust",
+			"env": {
+				"RUST_LOG": "info"
+			},
+			"type": "stdio"
+		},
+		"live-function-tree": {
+			"command": "C:\\mcp-servers\\live-function-tree-mcp-rust\\target\\release\\live-function-tree-mcp.exe",
+			"cwd": "C:\\mcp-servers\\live-function-tree-mcp-rust",
+			"env": {
+				"RUST_LOG": "info"
+			},
+			"type": "stdio"
+		},
+		"smart-tree": {
+			"command": "C:\\mcp-servers\\smart-tree-5.4.0\\target\\release\\st.exe",
+			"args": [
+				"--mcp"
+			],
+			"cwd": "C:\\mcp-servers\\smart-tree-5.4.0",
+			"env": {
+				"RUST_LOG": "error",
+				"ST_MCP_OPTIMIZE": "true"
+			},
+			"type": "stdio"
+		},
+		"asset-generator": {
+			"command": "python",
+			"args": [
+				"server.py"
+			],
+			"cwd": "c:\\mcp-servers\\asset-generator",
+			"env": {
+				"PYTHONUNBUFFERED": "1"
+			},
+			"type": "stdio"
+		},
+		"vector-database": {
+			"command": "C:\\mcp-servers\\claude-context\\packages\\rust-mcp\\target\\release\\rust-mcp-server.exe",
+			"args": [
+				"local-onnx"
+			],
+			"cwd": "C:\\mcp-servers\\claude-context\\packages\\rust-mcp",
+			"env": {
+				"POSTGRES_URL": "postgresql://postgres:postgres@localhost:5432/claude_context",
+				"RUST_LOG": "info"
+			},
+			"type": "stdio"
+		},
+		"multi-model-mcp": {
+			"command": "node",
+			"args": [
+				"dist/index.js"
+			],
+			"cwd": "C:\\mcp-servers\\multi-model-mcp",
+			"env": {
+				"OPENROUTER_API_KEY": "REPLACE_WITH_YOUR_KEY"
+			},
+			"type": "stdio"
+		},
+		"vscode-mcp-server": {
+			"command": "npx",
+			"args": [
+				"mcp-remote@next",
+				"http://localhost:3000/mcp"
+			],
+			"type": "stdio"
+		},
+		"snapshot-maker": {
+			"command": "C:\\mcp-servers\\snapshot-maker\\target\\release\\snapshot-maker.exe",
+			"cwd": "C:\\mcp-servers\\snapshot-maker",
+			"env": {
+				"RUST_LOG": "info",
+				"SNAPSHOT_DEFAULT_PRESET": "balanced",
+				"SNAPSHOT_DEFAULT_FORMAT": "mini",
+				"SNAPSHOT_UNLIMITED_FILES": "true",
+				"SNAPSHOT_DEFAULT_CIS_Q_ANALYSIS": "true",
+				"SNAPSHOT_DEFAULT_ANALYSIS_MODULES": "CIM",
+				"SNAPSHOT_DEFAULT_SEMANTIC_MODE": "true"
+			},
+			"type": "stdio",
+			"description": "🚀 Snapshot-Maker CIS-Q: 4,383 files/sec parsing, 99.3% compression, M1 format"
+		},
+		"copilot-expert-skills": {
+			"command": "node",
+			"args": [
+				"dist/server.js"
+			],
+			"cwd": "h:\\unified-multi-agent-system\\copilot-expert-skills-mcp",
+			"env": {
+				"NODE_ENV": "production"
+			},
+			"type": "stdio",
+			"description": "🧠 Expert Skills MCP Server - 26 domains with knowledge compression for instant domain expertise"
+		},
+		"swarm-high-speed": {
+			"command": "python",
+			"args": [
+				"c:/AGI-Swarm-System/core-agents/cli-agent/swarm_mcp_server.py"
+			],
+			"cwd": "c:/AGI-Swarm-System/core-agents/cli-agent",
+			"env": {
+				"PYTHONUNBUFFERED": "1"
+			},
+			"type": "stdio",
+			"description": "🚀 High-Speed Swarm: Multi-agent documentation, API mapping, and security auditing (30-50 workers)."
+		},
+		"rust-browser": {
+			"command": "C:\\rust-browser\\target\\release\\rust-browser-mcp.exe",
+			"cwd": "C:\\rust-browser",
+			"env": {
+				"RUST_LOG": "info"
+			},
+			"type": "stdio",
+			"description": "Rust Chrome MCP browser agent - navigate, screenshot (vision), get_text, get_links, fill_and_submit"
+		}
+	}
+}

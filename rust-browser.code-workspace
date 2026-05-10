@@ -1,0 +1,12 @@
+{
+	"folders": [
+        {
+            "path": "../Users/ad2/Desktop/yoshi2"
+        }
+    ],
+    "settings": {
+        "Lingma.cloudModelAutoTriggerGenerateLength": "long",
+        "Lingma.cloudModelManualTriggerGenerateLength": "long",
+        "Lingma.aI Chat.mcpToolsInAgentMode": true
+    }
+}

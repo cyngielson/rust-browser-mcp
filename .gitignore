@@ -1,0 +1,13 @@
+/target
+*.exe
+*.pdb
+*.ilk
+test_wiki_out.txt
+wiki_out.txt
+test_chain.txt
+test_chain_err.txt
+test_input.txt
+test_out.txt
+test_chain_out.txt
+err.txt
+out.txt

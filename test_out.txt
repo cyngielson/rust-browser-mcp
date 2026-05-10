@@ -1,0 +1,2 @@
+{"jsonrpc":"2.0","id":1,"result":{"capabilities":{"tools":{}},"protocolVersion":"2024-11-05","serverInfo":{"name":"rust-browser-mcp","version":"0.1.0"}}}
+{"jsonrpc":"2.0","id":2,"result":{"content":[{"text":"<page url=\"https://example.com/\" title=\"Example Domain\">\n  <h1>Example Domain</h1>\n  <p>This domain is for use in documentation examples without needing permission. Avoid use in operations.</p>\n  <link id=\"1\" href=\"https://iana.org/domains/example\">Learn more</link>\n</page>","type":"text"}]}}
