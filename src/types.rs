@@ -10,6 +10,8 @@ pub struct PageState {
     pub url: String,
     /// Tytuł strony
     pub title: String,
+    /// Historia nawigacji (max 20 wpisów) - dla go_back()
+    pub history: Vec<String>,
 }
 
 impl PageState {
@@ -18,7 +20,24 @@ impl PageState {
     }
 
     pub fn reset(&mut self, url: &str) {
+        if !self.url.is_empty() && self.url != url {
+            self.history.push(self.url.clone());
+            if self.history.len() > 20 {
+                self.history.remove(0);
+            }
+        }
         self.url = url.to_string();
         self.title.clear();
+    }
+
+    /// Cofnij do poprzedniego URL. Zwraca URL do którego wracamy, lub None jeśli historia pusta.
+    pub fn pop_history(&mut self) -> Option<String> {
+        if let Some(prev) = self.history.pop() {
+            self.url = prev.clone();
+            self.title.clear();
+            Some(prev)
+        } else {
+            None
+        }
     }
 }

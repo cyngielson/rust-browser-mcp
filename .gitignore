@@ -1,6 +1,8 @@
 /target
 *.exe
 servers.json
+/archive/
+*.bak
 test_*.txt
 test_*.png
 wiki_out.txt

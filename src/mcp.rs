@@ -236,6 +236,54 @@ fn tool_definitions() -> Value {
                     },
                     "required": ["type", "api_key"]
                 }
+            },
+            {
+                "name": "go_back",
+                "description": "Cofa do poprzedniej strony (historia nawigacji). Zwraca WAP-XML poprzedniej strony. Działa tylko jeśli wcześniej użyto navigate().",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {}
+                }
+            },
+            {
+                "name": "scroll_down",
+                "description": "Przewija stronę w dół o N pikseli (domyślnie 800) i zwraca odświeżony WAP-XML. Przydatne do infinite scroll, lazy-load i stron paginowanych przez scroll.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "pixels": {
+                            "type": "integer",
+                            "description": "Liczba pikseli do przewinięcia (domyślnie 800)"
+                        }
+                    }
+                }
+            },
+            {
+                "name": "execute_js",
+                "description": "Wykonuje dowolny JavaScript na aktualnej stronie i zwraca wynik. Escape hatch gdy WAP-XML nie wystarczy - np. ekstrakcja danych ze złożonych SPA, sprawdzenie stanu aplikacji, odczyt localStorage.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "code": {
+                            "type": "string",
+                            "description": "Kod JS do wykonania na stronie. Powinien zwracać wartość (string/number/object). Np: \"document.querySelectorAll('.price').length\""
+                        }
+                    },
+                    "required": ["code"]
+                }
+            },
+            {
+                "name": "extract_table",
+                "description": "Wyciąga tabele HTML ze strony jako JSON. Zwraca array tabel z nagłówkami i wierszami. Idealne do kursów walut, cenników, danych statystycznych, tabel wyników.",
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {
+                        "selector": {
+                            "type": "string",
+                            "description": "CSS selector tabel (domyślnie 'table'). Np. 'table.data-table' lub '.results table'"
+                        }
+                    }
+                }
             }
         ]
     })
@@ -671,6 +719,51 @@ impl McpServer {
                     "task_id": solution.task_id,
                     "hint": "Wstaw solution do fill_and_submit() jako wartość pola g-recaptcha-response lub h-captcha-response"
                 }).to_string()}]))
+            }
+
+            "go_back" => {
+                let prev = browser.state.pop_history();
+                match prev {
+                    Some(url) => {
+                        let b = &mut *browser;
+                        let xml = b.chrome.navigate_wap(&url, &mut b.state).await?;
+                        Ok(json!([{"type": "text", "text": xml}]))
+                    }
+                    None => Ok(json!([{"type": "text", "text": "<error>Brak historii nawigacji. Użyj navigate() najpierw.</error>"}]))
+                }
+            }
+
+            "scroll_down" => {
+                if browser.state.url.is_empty() {
+                    return Ok(json!([{"type": "text", "text": "<error>Brak załadowanej strony. Użyj navigate(url) najpierw.</error>"}]));
+                }
+                let pixels = args["pixels"].as_u64().unwrap_or(800) as u32;
+                let url = browser.state.url.clone();
+                let b = &mut *browser;
+                let xml = b.chrome.scroll_and_extract(&url, pixels, &mut b.state).await?;
+                Ok(json!([{"type": "text", "text": xml}]))
+            }
+
+            "execute_js" => {
+                if browser.state.url.is_empty() {
+                    return Ok(json!([{"type": "text", "text": "<error>Brak załadowanej strony. Użyj navigate(url) najpierw.</error>"}]));
+                }
+                let code = args["code"]
+                    .as_str()
+                    .ok_or_else(|| anyhow::anyhow!("Missing 'code' argument"))?;
+                let url = browser.state.url.clone();
+                let result = browser.chrome.execute_js_raw(&url, code).await?;
+                Ok(json!([{"type": "text", "text": result}]))
+            }
+
+            "extract_table" => {
+                if browser.state.url.is_empty() {
+                    return Ok(json!([{"type": "text", "text": "[]"}]));
+                }
+                let selector = args["selector"].as_str();
+                let url = browser.state.url.clone();
+                let result = browser.chrome.extract_tables(&url, selector).await?;
+                Ok(json!([{"type": "text", "text": result}]))
             }
 
             unknown => Err(anyhow::anyhow!("Unknown tool: {}", unknown)),

@@ -850,6 +850,123 @@ impl ChromeBrowser {
         Ok(xml)
     }
 
+    /// Przewija stronę o podaną liczbę pikseli w dół, czeka na lazy-load content (500ms),
+    /// zwraca odświeżony WAP-XML. Przydatne do infinite scroll i stron z lazyload.
+    pub async fn scroll_and_extract(&self, url: &str, pixels: u32, state: &mut PageState) -> Result<String> {
+        info!("Chrome scroll_and_extract: {} px on {}", pixels, url);
+        let browser = self.browser.lock().await;
+        let page = browser.new_page(url).await?;
+        page.wait_for_navigation().await?;
+        let _ = page.evaluate(STEALTH_JS).await;
+
+        let scroll_js = format!("window.scrollBy(0, {}); true", pixels);
+        let _ = page.evaluate(scroll_js).await;
+
+        // Czekaj na lazy-load content
+        tokio::time::sleep(std::time::Duration::from_millis(600)).await;
+
+        let xml: String = page
+            .evaluate(DOM_EXTRACTOR_JS)
+            .await?
+            .into_value()
+            .context("DOM extraction failed after scroll")?;
+
+        let final_url: String = page
+            .evaluate("window.location.href")
+            .await
+            .ok()
+            .and_then(|v| v.into_value().ok())
+            .unwrap_or_else(|| url.to_string());
+
+        let title: String = page
+            .evaluate("document.title")
+            .await
+            .ok()
+            .and_then(|v| v.into_value().ok())
+            .unwrap_or_default();
+
+        state.url = final_url;
+        state.title = title;
+        let _ = page.close().await;
+        Ok(xml)
+    }
+
+    /// Wykonuje dowolny JS na aktualnej stronie, zwraca wynik jako string.
+    /// Escape hatch gdy WAP-XML nie wystarczy. Stealth aktywny.
+    pub async fn execute_js_raw(&self, url: &str, js_code: &str) -> Result<String> {
+        info!("Chrome execute_js: {} chars on {}", js_code.len(), url);
+        let browser = self.browser.lock().await;
+        let page = browser.new_page(url).await?;
+        page.wait_for_navigation().await?;
+        let _ = page.evaluate(STEALTH_JS).await;
+
+        let result: serde_json::Value = page
+            .evaluate(js_code)
+            .await
+            .context("JS execution failed")?
+            .into_value()
+            .unwrap_or(serde_json::Value::Null);
+
+        let _ = page.close().await;
+
+        let output = match &result {
+            serde_json::Value::String(s) => s.clone(),
+            other => serde_json::to_string_pretty(other)
+                .unwrap_or_else(|_| "null".to_string()),
+        };
+        Ok(output)
+    }
+
+    /// Wyciąga tabele (lub wg CSS selectora) jako JSON array.
+    /// Każda tabela: { table_index, caption, headers, rows, row_count, col_count }
+    pub async fn extract_tables(&self, url: &str, selector: Option<&str>) -> Result<String> {
+        info!("Chrome extract_tables: selector={:?} on {}", selector, url);
+        let sel = selector.unwrap_or("table").replace('\'', "\\'");
+        let table_js = format!(r#"
+(function() {{
+    const tables = document.querySelectorAll('{sel}');
+    const result = [];
+    tables.forEach((table, ti) => {{
+        const headers = [];
+        const thEls = table.querySelectorAll('thead th, thead td, tr:first-child th');
+        thEls.forEach(th => headers.push((th.innerText||th.textContent||'').replace(/\s+/g,' ').trim()));
+        const rows = [];
+        table.querySelectorAll('tbody tr, tr').forEach(tr => {{
+            const cells = [];
+            tr.querySelectorAll('td, th').forEach(td => {{
+                cells.push((td.innerText||td.textContent||'').replace(/\s+/g,' ').trim());
+            }});
+            if (cells.length > 0) rows.push(cells);
+        }});
+        const captionEl = table.querySelector('caption');
+        result.push({{
+            table_index: ti,
+            caption: captionEl ? (captionEl.innerText||'').trim() : '',
+            headers: headers,
+            rows: rows,
+            row_count: rows.length,
+            col_count: headers.length || (rows[0] ? rows[0].length : 0)
+        }});
+    }});
+    return JSON.stringify(result, null, 2);
+}})()
+"#, sel = sel);
+
+        let browser = self.browser.lock().await;
+        let page = browser.new_page(url).await?;
+        page.wait_for_navigation().await?;
+        let _ = page.evaluate(STEALTH_JS).await;
+
+        let result: String = page
+            .evaluate(table_js)
+            .await?
+            .into_value()
+            .context("table extraction failed")?;
+
+        let _ = page.close().await;
+        Ok(result)
+    }
+
     /// Screenshot jako VerifyResult (do wysłania do Judge LLM)
     #[allow(dead_code)]
     pub async fn screenshot_current_as_result(&self, url: &str) -> Result<VerifyResult> {
